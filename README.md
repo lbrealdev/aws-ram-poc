@@ -8,8 +8,14 @@ This repository documents the sharing model and will hold a small Terraform stac
 
 | Doc | Contents |
 | --- | --- |
+| [docs/architectures.md](docs/architectures.md) | Org topology (Account A / B) and Parameter Store cross-account ASCII flows |
 | [docs/aws-ram.md](docs/aws-ram.md) | What RAM does, share model, invitations vs Organizations, managed permissions, constraints, IAM, references |
 | [docs/terraform.md](docs/terraform.md) | Provider resources, HCL examples (share, associations, accepter, permissions) |
+
+
+## Architecture
+
+Same AWS Organization (**Org X**): **Account A** consumes; **Account B** owns Parameter Store (Advanced) and the RAM share. Diagrams: [docs/architectures.md](docs/architectures.md).
 
 Agent workflow: [AGENTS.md](AGENTS.md).
 
