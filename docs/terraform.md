@@ -98,6 +98,37 @@ resource "aws_ram_principal_association" "org" {
 }
 ```
 
+
+### Resource and principal associations (this PoC)
+
+The root stack wires `modules/ram_associations` after `modules/ram_share`. Empty lists are a no-op.
+
+```hcl
+module "ram_associations" {
+  source = "./modules/ram_associations"
+
+  resource_share_arn = module.ram_share.arn
+  resource_arns      = var.resource_arns
+  principals         = var.principals
+}
+```
+
+Example `terraform.tfvars` values (placeholders):
+
+```hcl
+resource_arns = [
+  "arn:aws:ssm:eu-west-1:111122223333:parameter/path/to/param",
+]
+
+principals = [
+  "arn:aws:iam::444455556666:role/example-consumer-role",
+]
+```
+
+`principals` may also be a 12-digit account ID, an Organization ARN, or an OU ARN. For `ssm:Parameter`, IAM role and user ARNs are supported ([Shareable AWS resources](https://docs.aws.amazon.com/ram/latest/userguide/shareable.html)).
+
+Do not combine these granular associations with `aws_ram_resource_share_associations_exclusive` on the same share.
+
 ### Enable sharing with Organizations
 
 ```hcl

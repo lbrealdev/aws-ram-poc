@@ -33,13 +33,13 @@ Common aliases: `just sts` (caller identity), `just cleanup` (local Terraform ar
 
 ## Terraform stack
 
-**Status:** root stack + `modules/ram_share` (resource share only).
+**Status:** root stack + `modules/ram_share` + `modules/ram_associations`.
 
-Associations, accepter, and Organizations sharing land in later PRs.
+Accepter and Organizations sharing modules are not required for same-org Account A / Account B.
 
 ```bash
 cp examples/default.tfvars.example terraform.tfvars
-# edit terraform.tfvars
+# edit terraform.tfvars (resource_arns + principals)
 just init
 just plan
 ```
@@ -47,8 +47,9 @@ just plan
 | Path | Role |
 | --- | --- |
 | `modules/ram_share` | `aws_ram_resource_share` |
+| `modules/ram_associations` | `aws_ram_resource_association` + `aws_ram_principal_association` |
 | `examples/default.tfvars.example` | Sample inputs (copy to local `terraform.tfvars`) |
 
-Root variables: `aws_region`, `share_name`, `allow_external_principals`, `permission_arns`, `tags`.
+Root variables: `aws_region`, `share_name`, `allow_external_principals`, `permission_arns`, `resource_arns`, `principals`, `tags`.
 
-Outputs: `ram_share_arn`, `ram_share_id`.
+Outputs: `ram_share_arn`, `ram_share_id`, `resource_association_ids`, `principal_association_ids`.

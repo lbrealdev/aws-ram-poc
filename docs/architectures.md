@@ -28,11 +28,12 @@ Account A needs to reach a parameter that lives in Account B. Account B owns the
  │    │                     │            │  (Advanced)                  │
  │    ▼                     │            │         │                    │
  │  IAM role ───────────────┼─GetParameter─────────┘                    │
- │  (identity policy SSM)   │            │         │                    │
- │                          │            │         ▼                    │
- │  No RAM invitation when  │            │  AWS RAM resource share      │
- │  A and B are in Org X    │            │    ├─ resource: param ARN  │
- │  with org sharing on     │            │    └─ principal: Acct A ID │
+ │  (may also need identity │            │         │                    │
+ │   policy SSM on the ARN) │            │         ▼                    │
+ │                          │            │  AWS RAM resource share      │
+ │  No RAM invitation when  │            │    ├─ resource: param ARN  │
+ │  A and B are in Org X    │            │    └─ principal: role ARN  │
+ │  with org sharing on     │            │       (Account A IAM role) │
  └──────────▲───────────────┘            │  allow_external_principals │
             │                            │  (false is enough in-org)  │
             │      share association     │                            │
@@ -40,16 +41,16 @@ Account A needs to reach a parameter that lives in Account B. Account B owns the
                                          └──────────────────────────────┘
 ```
 
+`ssm:Parameter` supports sharing with IAM roles and users (see [Shareable AWS resources](https://docs.aws.amazon.com/ram/latest/userguide/shareable.html)). This PoC associates the Account A role ARN as the RAM principal. You can instead use Account A's 12-digit account ID, an OU ARN, or the organization ARN.
+
 ### Steps
 
 1. Account B creates the Advanced-tier parameter.
-2. Account B creates the RAM resource share.
-3. Account B associates the parameter ARN with the share.
-4. Account B associates Account A's 12-digit account ID as principal.
+2. Account B creates the RAM resource share (and optional `permission_arns`).
+3. Account B associates the parameter ARN with the share (`aws_ram_resource_association`).
+4. Account B associates the principal — typically Account A's IAM role ARN (`aws_ram_principal_association`).
 5. Skip invitation when both accounts are in Org X with RAM sharing with Organizations enabled.
-6. Account A's EC2 role needs `ssm:GetParameter` (and related) on the shared parameter ARN.
-
-The IAM role is authorization **inside** Account A after the share grants the account. For Parameter Store, the RAM principal is typically the consumer **account**, not the role ARN.
+6. Ensure the Account A role can call `ssm:GetParameter` (and related) on the shared parameter ARN when required by your identity policies.
 
 ## Deleted shares
 

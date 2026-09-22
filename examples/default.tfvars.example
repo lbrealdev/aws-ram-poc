@@ -11,6 +11,16 @@ allow_external_principals = false
 #   "arn:aws:ram::aws:permission/AWSRAMPermissionSSMParameterReadOnlyWithHistory",
 # ]
 
+# Account B: Advanced parameter ARN(s)
+# resource_arns = [
+#   "arn:aws:ssm:eu-west-1:111122223333:parameter/path/to/param",
+# ]
+
+# Account A: IAM role ARN (ssm:Parameter supports IAM roles) and/or account ID / org / OU
+# principals = [
+#   "arn:aws:iam::444455556666:role/example-consumer-role",
+# ]
+
 tags = {
   Environment = "poc"
 }

@@ -20,6 +20,18 @@ variable "permission_arns" {
   default     = []
 }
 
+variable "resource_arns" {
+  type        = list(string)
+  description = "Resource ARNs to associate with the share (e.g. Advanced SSM parameter ARNs on Account B)."
+  default     = []
+}
+
+variable "principals" {
+  type        = list(string)
+  description = "Principals to associate: account ID, Organization ARN, OU ARN, or IAM role/user ARN when the resource type supports it (e.g. Account A role ARN for ssm:Parameter)."
+  default     = []
+}
+
 variable "tags" {
   type        = map(string)
   description = "Extra tags for the resource share."
