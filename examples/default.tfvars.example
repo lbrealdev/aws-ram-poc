@@ -1,0 +1,7 @@
+aws_region                = "eu-west-1"
+share_name                = "aws-ram-poc-share"
+allow_external_principals = false
+# permission_arns         = []
+tags = {
+  Environment = "poc"
+}

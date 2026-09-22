@@ -27,12 +27,22 @@ Common aliases: `just sts` (caller identity), `just cleanup` (local Terraform ar
 
 ## Terraform stack
 
-**Status:** not in the repo yet. The next PR adds the root stack and modules.
+**Status:** root stack + `modules/ram_share` (resource share only).
 
-Planned shape (subject to that PR):
+Associations, accepter, and Organizations sharing land in later PRs.
 
-- Root wiring + `versions.tf` (Terraform `>= 1.2`, AWS provider `>= 6.0`)
-- Modules for the share path (owner share / associations; consumer accepter when needed)
-- `examples/*.tfvars.example` for local `terraform.tfvars` (never committed)
+```bash
+cp examples/default.tfvars.example terraform.tfvars
+# edit terraform.tfvars
+just init
+just plan
+```
 
-Until then, use [docs/terraform.md](docs/terraform.md) as the HCL reference and [docs/aws-ram.md](docs/aws-ram.md) for behavior and pitfalls (especially Organizations trusted access and Region constraints).
+| Path | Role |
+| --- | --- |
+| `modules/ram_share` | `aws_ram_resource_share` |
+| `examples/default.tfvars.example` | Sample inputs (copy to local `terraform.tfvars`) |
+
+Root variables: `aws_region`, `share_name`, `allow_external_principals`, `permission_arns`, `tags`.
+
+Outputs: `ram_share_arn`, `ram_share_id`.
