@@ -1,0 +1,33 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform/
+.terraform.lock.hcl
+crash.log
+crash.*.log
+.terraformrc
+terraform.rc
+.terragrunt-cache/
+
+plan
+*.plan
+destroy
+
+# Secrets / local env
+*.secret
+*.backup
+.env
+
+# Hermes (local planning artifacts)
+.hermes/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
