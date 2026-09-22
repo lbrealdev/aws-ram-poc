@@ -2,6 +2,8 @@
 
 Reference for how AWS RAM sharing works in this PoC. Terraform details live in [terraform.md](./terraform.md).
 
+Architecture diagrams for this PoC (Account A / Account B, same Org X): [architectures.md](./architectures.md).
+
 ## What AWS RAM does
 
 AWS RAM lets the account that owns a resource share it with other AWS accounts, with an organization or organizational unit (OU) in AWS Organizations, and — for some resource types — with IAM roles, IAM users, and service principals.
@@ -66,6 +68,7 @@ Customer managed permissions are versioned. Associating a permission ARN pins th
 - **Invitations are not instantaneous.** The accepter depends on the principal association. If the association is still propagating, the first apply of the accepter can fail; re-apply, or depend on the association explicitly (as in the example).
 - **Management account only** for `aws_ram_sharing_with_organization`. Member accounts cannot enable it.
 - **Exclusive vs. granular.** Pick one association style per share.
+- **Deleted shares linger.** After you delete a resource share, it stays visible with status `DELETED` for about two hours, then disappears. The shared AWS resource itself is not deleted. See [Deleting a resource share](https://docs.aws.amazon.com/ram/latest/userguide/working-with-sharing-delete.html).
 - **Leaving the organization** drops access unless the share was created with `retain_sharing_on_account_leave_organization` and the consumer accepted the invitation.
 
 ## IAM
@@ -83,3 +86,4 @@ The action list changes. Check [Actions, resources, and condition keys for AWS R
 - [Shareable AWS resources](https://docs.aws.amazon.com/ram/latest/userguide/shareable.html)
 - [Managing permissions in AWS RAM](https://docs.aws.amazon.com/ram/latest/userguide/security-ram-permissions.html)
 - [Terraform AWS provider — RAM resources](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
+- [Deleting a resource share in AWS RAM](https://docs.aws.amazon.com/ram/latest/userguide/working-with-sharing-delete.html)
