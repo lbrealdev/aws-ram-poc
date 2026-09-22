@@ -2,6 +2,8 @@
 
 Reference for how AWS RAM sharing works in this PoC. Terraform details live in [terraform.md](./terraform.md).
 
+Architecture diagrams for this PoC (Account A / Account B, same Org X): [architectures.md](./architectures.md).
+
 ## What AWS RAM does
 
 AWS RAM lets the account that owns a resource share it with other AWS accounts, with an organization or organizational unit (OU) in AWS Organizations, and — for some resource types — with IAM roles, IAM users, and service principals.
@@ -51,12 +53,62 @@ By default, a consumer that leaves the organization loses access to shares it re
 
 ### Managed permissions
 
-Every resource type on a share has exactly one managed permission:
+Every resource type on a share has exactly one managed permission. In AWS RAM these are identified by ARNs of the form `arn:aws:ram::aws:permission/...` (AWS managed) or an ARN in your account (customer managed).
 
-- **AWS managed permissions** are maintained by AWS. RAM attaches the default version when you do not specify one.
-- **Customer managed permissions** are JSON policy templates (`Effect`, `Action`, and optional `Condition`) that you author for least privilege. Not every resource type supports them.
+- **AWS managed permissions** are maintained by AWS. If you omit `permission_arns` on the share, RAM attaches the default version for each resource type when you associate that type.
+- **Customer managed permissions** are JSON policy templates (`Effect`, `Action`, and optional `Condition`) that you author for least privilege. Not every resource type supports them. Create them with `aws_ram_permission` (Terraform) or the RAM API/console.
 
 Customer managed permissions are versioned. Associating a permission ARN pins the share to that permission; changing the default version does not automatically move existing shares.
+
+#### Parameter Store (this PoC)
+
+Advanced-tier parameters support two AWS managed permissions:
+
+| Name | ARN | Actions |
+| --- | --- | --- |
+| `AWSRAMDefaultPermissionSSMParameterReadOnly` | `arn:aws:ram::aws:permission/AWSRAMDefaultPermissionSSMParameterReadOnly` | `DescribeParameters`, `GetParameter`, `GetParameters` |
+| `AWSRAMPermissionSSMParameterReadOnlyWithHistory` | `arn:aws:ram::aws:permission/AWSRAMPermissionSSMParameterReadOnlyWithHistory` | Same as above, plus `GetParameterHistory` |
+
+Use **one** of them per share for `ssm:Parameter` — not both. Leave `permission_arns` empty until you associate a parameter if you want the default; pin the ARN above when you want it explicit on the share.
+
+After the share grants Account A access, the EC2 instance role in Account A still needs identity-based SSM permissions on the shared parameter ARN (for example `ssm:GetParameter`).
+
+Official reference: [Working with shared parameters in Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-shared-parameters.html).
+
+#### Review with AWS CLI (Account B / owner)
+
+List managed permissions for Parameter Store:
+
+```bash
+aws ram list-permissions \
+  --resource-type ssm:Parameter \
+  --region "$AWS_REGION"
+```
+
+Inspect one permission (policy template + metadata):
+
+```bash
+aws ram get-permission \
+  --permission-arn arn:aws:ram::aws:permission/AWSRAMDefaultPermissionSSMParameterReadOnly \
+  --region "$AWS_REGION"
+```
+
+List resource shares you own and filter active ones:
+
+```bash
+aws ram get-resource-shares \
+  --resource-owner SELF \
+  --resource-share-status ACTIVE \
+  --region "$AWS_REGION"
+```
+
+Show permissions already associated with a share:
+
+```bash
+aws ram list-resource-share-permissions \
+  --resource-share-arn "$SHARE_ARN" \
+  --region "$AWS_REGION"
+```
 
 ## Constraints that bite
 
@@ -66,6 +118,7 @@ Customer managed permissions are versioned. Associating a permission ARN pins th
 - **Invitations are not instantaneous.** The accepter depends on the principal association. If the association is still propagating, the first apply of the accepter can fail; re-apply, or depend on the association explicitly (as in the example).
 - **Management account only** for `aws_ram_sharing_with_organization`. Member accounts cannot enable it.
 - **Exclusive vs. granular.** Pick one association style per share.
+- **Deleted shares linger.** After you delete a resource share, it stays visible with status `DELETED` for about two hours, then disappears. The shared AWS resource itself is not deleted. See [Deleting a resource share](https://docs.aws.amazon.com/ram/latest/userguide/working-with-sharing-delete.html).
 - **Leaving the organization** drops access unless the share was created with `retain_sharing_on_account_leave_organization` and the consumer accepted the invitation.
 
 ## IAM
@@ -83,3 +136,6 @@ The action list changes. Check [Actions, resources, and condition keys for AWS R
 - [Shareable AWS resources](https://docs.aws.amazon.com/ram/latest/userguide/shareable.html)
 - [Managing permissions in AWS RAM](https://docs.aws.amazon.com/ram/latest/userguide/security-ram-permissions.html)
 - [Terraform AWS provider — RAM resources](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
+- [Deleting a resource share in AWS RAM](https://docs.aws.amazon.com/ram/latest/userguide/working-with-sharing-delete.html)
+- [Working with shared parameters in Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-shared-parameters.html)
+- [Viewing managed permissions](https://docs.aws.amazon.com/ram/latest/userguide/working-with-sharing-view-permissions.html)
