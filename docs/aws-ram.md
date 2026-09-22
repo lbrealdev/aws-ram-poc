@@ -37,6 +37,9 @@ A **resource share** is the container. It has three parts:
 | IAM role or user | Role or user ARN (supported resource types only) |
 | Service principal | `service-id.amazonaws.com` (supported resource types only) |
 
+
+For this PoC (`ssm:Parameter`), principals may be an AWS account ID, Organization ARN, OU ARN, or an IAM role/user ARN. See [architectures.md](./architectures.md) and [Shareable AWS resources](https://docs.aws.amazon.com/ram/latest/userguide/shareable.html).
+
 AWS RAM is a Regional service. Consumers must access each shared resource from the same Region where it was created. Some resources are global; those follow the global endpoint rules of their service. Not every resource type can be shared, and some can be shared only inside an organization. The authoritative list is [Shareable AWS resources](https://docs.aws.amazon.com/ram/latest/userguide/shareable.html).
 
 ### Invitations vs. organization sharing

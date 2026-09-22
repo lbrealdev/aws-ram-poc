@@ -6,3 +6,11 @@ module "ram_share" {
   permission_arns           = var.permission_arns
   tags                      = var.tags
 }
+
+module "ram_associations" {
+  source = "./modules/ram_associations"
+
+  resource_share_arn = module.ram_share.arn
+  resource_arns      = var.resource_arns
+  principals         = var.principals
+}
