@@ -26,8 +26,10 @@ resource "aws_ram_resource_share" "example" {
   allow_external_principals = true
 
   # Optional. One permission ARN per resource type on the share.
-  # Omitted => RAM attaches the default AWS managed permission per type.
-  # permission_arns = [aws_ram_permission.example.arn]
+  # Omitted / empty => RAM attaches the default AWS managed permission per type.
+  # For SSM Parameter Store (AWS managed):
+  # permission_arns = ["arn:aws:ram::aws:permission/AWSRAMDefaultPermissionSSMParameterReadOnly"]
+  # Or customer managed: permission_arns = [aws_ram_permission.example.arn]
 
   # Optional. Keep account-to-account access after the consumer leaves the org.
   # Requires allow_external_principals = true. Set only at creation.
@@ -42,6 +44,36 @@ resource "aws_ram_resource_share" "example" {
 ```
 
 `allow_external_principals` controls whether principals outside the organization can be associated. Leave it `false` when the share must stay inside the organization (required for some resource types, including subnets in many setups).
+
+
+### `permission_arns` on the root stack
+
+This PoC exposes `permission_arns` on the root module and passes it to `modules/ram_share`.
+
+Leave it empty to let RAM attach the AWS default when a resource type is associated:
+
+```hcl
+permission_arns = []
+```
+
+Pin the Parameter Store read-only AWS managed permission explicitly:
+
+```hcl
+permission_arns = [
+  "arn:aws:ram::aws:permission/AWSRAMDefaultPermissionSSMParameterReadOnly",
+]
+```
+
+Or, if consumers need parameter history:
+
+```hcl
+permission_arns = [
+  "arn:aws:ram::aws:permission/AWSRAMPermissionSSMParameterReadOnlyWithHistory",
+]
+```
+
+Do not list both ARNs for the same resource type on one share. Details and CLI checks: [aws-ram.md — Managed permissions](./aws-ram.md#managed-permissions).
+
 
 ### Associate a principal and a resource
 
